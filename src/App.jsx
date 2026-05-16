@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 import SplashScreen from './components/SplashScreen';
 import NotificationPrompt from './components/NotificationPrompt';
 import LoginNudge from './components/LoginNudge';
@@ -9,6 +10,10 @@ import EventDetailPage from './pages/EventDetailPage';
 import CreateEventPage from './pages/CreateEventPage';
 import MyRegistrationsPage from './pages/MyRegistrationsPage';
 import LoginPage from './pages/LoginPage';
+import SignupPage from './pages/SignupPage';
+import EditProfilePage from './pages/EditProfilePage';
+import GalleryPage from './pages/GalleryPage';
+import CategoriesPage from './pages/CategoriesPage';
 import sampleEvents from './data/sampleEvents';
 
 function App() {
@@ -21,12 +26,10 @@ function App() {
   const [showNotifPrompt, setShowNotifPrompt] = useState(false);
   const [showLoginNudge, setShowLoginNudge] = useState(false);
 
-  // Apply theme to body
   useEffect(() => {
     document.body.className = theme;
   }, [theme]);
 
-  // Show notification prompt after splash ends
   useEffect(() => {
     if (!showSplash) {
       const timer = setTimeout(() => setShowNotifPrompt(true), 1000);
@@ -34,7 +37,6 @@ function App() {
     }
   }, [showSplash]);
 
-  // Show login nudge after 5 seconds if not logged in
   useEffect(() => {
     if (!showSplash && !user) {
       const timer = setTimeout(() => setShowLoginNudge(true), 5000);
@@ -46,60 +48,61 @@ function App() {
 
   return (
     <BrowserRouter>
-      <div style={{ minHeight: '100vh', background: theme === 'dark' ? '#080d14' : '#f0f4ff' }}>
+      <div style={{ minHeight: '100vh', background: theme === 'dark' ? '#080d14' : '#f0f4ff', display: 'flex', flexDirection: 'column' }}>
         <Navbar
-          user={user}
-          setUser={setUser}
-          theme={theme}
-          setTheme={setTheme}
+          user={user} setUser={setUser}
+          theme={theme} setTheme={setTheme}
           userEmail={userEmail}
         />
 
         {showNotifPrompt && (
-          <NotificationPrompt
-            onClose={() => setShowNotifPrompt(false)}
-            theme={theme}
-          />
+          <NotificationPrompt onClose={() => setShowNotifPrompt(false)} theme={theme} />
         )}
 
         {showLoginNudge && !user && (
-          <LoginNudge
-            onClose={() => setShowLoginNudge(false)}
-            theme={theme}
-          />
+          <LoginNudge onClose={() => setShowLoginNudge(false)} theme={theme} />
         )}
 
-        <Routes>
-          <Route path="/" element={
-            <HomePage events={events} theme={theme} />}
-          />
-          <Route path="/event/:id" element={
-            <EventDetailPage
-              events={events}
-              user={user}
-              theme={theme}
-              registrations={registrations}
-              setRegistrations={setRegistrations}
-            />}
-          />
-          <Route path="/create" element={
-            user
-              ? <CreateEventPage setEvents={setEvents} user={user} theme={theme} />
-              : <Navigate to="/login" />}
-          />
-          <Route path="/my-registrations" element={
-            user
-              ? <MyRegistrationsPage registrations={registrations} theme={theme} />
-              : <Navigate to="/login" />}
-          />
-          <Route path="/login" element={
-            <LoginPage
-              setUser={setUser}
-              setUserEmail={setUserEmail}
-              theme={theme}
-            />}
-          />
-        </Routes>
+        <div style={{ flex: 1 }}>
+          <Routes>
+            <Route path="/" element={<HomePage events={events} theme={theme} />} />
+            <Route path="/event/:id" element={
+              <EventDetailPage
+                events={events} user={user} theme={theme}
+                registrations={registrations} setRegistrations={setRegistrations}
+              />}
+            />
+            <Route path="/create" element={
+              user
+                ? <CreateEventPage setEvents={setEvents} user={user} theme={theme} />
+                : <Navigate to="/login" />}
+            />
+            <Route path="/my-registrations" element={
+              user
+                ? <MyRegistrationsPage registrations={registrations} theme={theme} />
+                : <Navigate to="/login" />}
+            />
+            <Route path="/login" element={
+              <LoginPage setUser={setUser} setUserEmail={setUserEmail} theme={theme} />}
+            />
+            <Route path="/signup" element={
+              <SignupPage setUser={setUser} setUserEmail={setUserEmail} theme={theme} />}
+            />
+            <Route path="/edit-profile" element={
+              user
+                ? <EditProfilePage
+                    user={user} setUser={setUser}
+                    userEmail={userEmail} setUserEmail={setUserEmail}
+                    theme={theme}
+                  />
+                : <Navigate to="/login" />}
+            />
+            <Route path="/gallery" element={<GalleryPage theme={theme} user={user} />} />
+            <Route path="/categories" element={<CategoriesPage events={events} theme={theme} />} />
+          </Routes>
+        </div>
+
+        <Footer theme={theme} />
       </div>
     </BrowserRouter>
   );

@@ -125,6 +125,16 @@ function LoginPage({ setUser, setUserEmail, theme }) {
           }}>
             Continue →
           </button>
+          <p style={{
+  textAlign: 'center', color: dark ? '#888' : '#666',
+  fontSize: '0.85rem', marginBottom: '12px',
+}}>
+  Don't have an account?{' '}
+  <span
+    onClick={() => navigate('/signup')}
+    style={{ color: '#0099ff', cursor: 'pointer', fontWeight: 700 }}
+  >Sign Up</span>
+</p>
 
           {/* Back Button */}
           <button onClick={() => navigate('/')} style={{
