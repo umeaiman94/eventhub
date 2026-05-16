@@ -14,6 +14,7 @@ import sampleEvents from './data/sampleEvents';
 function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [user, setUser] = useState(null);
+  const [userEmail, setUserEmail] = useState('');
   const [events, setEvents] = useState(sampleEvents);
   const [registrations, setRegistrations] = useState([]);
   const [theme, setTheme] = useState('dark');
@@ -46,18 +47,32 @@ function App() {
   return (
     <BrowserRouter>
       <div style={{ minHeight: '100vh', background: theme === 'dark' ? '#080d14' : '#f0f4ff' }}>
-        <Navbar user={user} setUser={setUser} theme={theme} setTheme={setTheme} />
+        <Navbar
+          user={user}
+          setUser={setUser}
+          theme={theme}
+          setTheme={setTheme}
+          userEmail={userEmail}
+        />
 
         {showNotifPrompt && (
-          <NotificationPrompt onClose={() => setShowNotifPrompt(false)} theme={theme} />
+          <NotificationPrompt
+            onClose={() => setShowNotifPrompt(false)}
+            theme={theme}
+          />
         )}
 
         {showLoginNudge && !user && (
-          <LoginNudge onClose={() => setShowLoginNudge(false)} theme={theme} />
+          <LoginNudge
+            onClose={() => setShowLoginNudge(false)}
+            theme={theme}
+          />
         )}
 
         <Routes>
-          <Route path="/" element={<HomePage events={events} theme={theme} />} />
+          <Route path="/" element={
+            <HomePage events={events} theme={theme} />}
+          />
           <Route path="/event/:id" element={
             <EventDetailPage
               events={events}
@@ -77,7 +92,13 @@ function App() {
               ? <MyRegistrationsPage registrations={registrations} theme={theme} />
               : <Navigate to="/login" />}
           />
-          <Route path="/login" element={<LoginPage setUser={setUser} theme={theme} />} />
+          <Route path="/login" element={
+            <LoginPage
+              setUser={setUser}
+              setUserEmail={setUserEmail}
+              theme={theme}
+            />}
+          />
         </Routes>
       </div>
     </BrowserRouter>
