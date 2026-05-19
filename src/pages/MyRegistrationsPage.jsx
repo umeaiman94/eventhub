@@ -1,9 +1,46 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getMyRegistrations } from '../api';
 
-function MyRegistrationsPage({ registrations, theme }) {
+function MyRegistrationsPage({ theme }) {
   const navigate = useNavigate();
   const dark = theme === 'dark';
+  const [registrations, setRegistrations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchRegistrations = async () => {
+      try {
+        const res = await getMyRegistrations();
+        setRegistrations(res.data);
+      } catch (err) {
+        setError('Could not load registrations.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRegistrations();
+  }, []);
+
+  if (loading) return (
+    <div style={{
+      textAlign: 'center', padding: '80px 2rem',
+      fontFamily: "'Syne', sans-serif",
+    }}>
+      <div style={{
+        width: 48, height: 48, borderRadius: '50%',
+        border: '3px solid #0099ff',
+        borderTopColor: 'transparent',
+        margin: '0 auto 16px',
+        animation: 'spin 0.8s linear infinite',
+      }} />
+      <p style={{ color: dark ? '#888' : '#666' }}>
+        Loading registrations...
+      </p>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
 
   return (
     <div style={{ maxWidth: 700, margin: '0 auto', padding: '40px 2rem' }}>
@@ -14,16 +51,25 @@ function MyRegistrationsPage({ registrations, theme }) {
         fontWeight: 900, fontSize: '2rem', marginBottom: '8px',
       }}>My Registrations</h1>
 
-      <p style={{
-        color: dark ? '#888' : '#666', marginBottom: '32px',
-      }}>Events you have signed up for.</p>
+      <p style={{ color: dark ? '#888' : '#666', marginBottom: '32px' }}>
+        Events you have signed up for.
+      </p>
+
+      {/* Error */}
+      {error && (
+        <div style={{
+          background: '#2a0a0a', border: '1px solid #ff4d4d',
+          borderRadius: '10px', padding: '10px 14px',
+          color: '#ff4d4d', fontSize: '0.85rem',
+          fontFamily: "'Syne', sans-serif", marginBottom: '16px',
+        }}>{error}</div>
+      )}
 
       {registrations.length === 0 ? (
         <div style={{
           textAlign: 'center', padding: '60px 0',
           fontFamily: "'Syne', sans-serif",
         }}>
-          {/* Empty State Icon */}
           <div style={{
             width: 80, height: 80, borderRadius: '20px',
             background: dark ? '#0d1a28' : '#e0f0ff',
@@ -43,7 +89,6 @@ function MyRegistrationsPage({ registrations, theme }) {
             fontSize: '0.9rem', marginBottom: '24px',
           }}>
             You have not signed up for any events yet.
-            Browse and register for one!
           </p>
 
           <button onClick={() => navigate('/')} style={{
@@ -86,21 +131,22 @@ function MyRegistrationsPage({ registrations, theme }) {
             <p style={{
               color: dark ? '#888' : '#666',
               fontSize: '0.8rem', marginBottom: '12px',
-            }}>Registered on {reg.date}</p>
+            }}>
+              Registered on {new Date(reg.createdAt).toLocaleDateString()}
+            </p>
 
             {/* Form Data */}
             <div style={{
               borderTop: `1px solid ${dark ? '#0f1e2e' : '#e0e0f0'}`,
               paddingTop: '12px',
             }}>
-              {Object.entries(reg.data).map(([key, value]) => (
+              {reg.data && Object.entries(reg.data).map(([key, value]) => (
                 <p key={key} style={{
                   color: dark ? '#888' : '#666',
                   fontSize: '0.83rem', margin: '4px 0',
                 }}>
                   <span style={{
-                    color: dark ? '#ccc' : '#333',
-                    fontWeight: 600,
+                    color: dark ? '#ccc' : '#333', fontWeight: 600,
                   }}>{key}:</span> {value}
                 </p>
               ))}
@@ -110,15 +156,12 @@ function MyRegistrationsPage({ registrations, theme }) {
             <button
               onClick={() => navigate(`/event/${reg.eventId}`)}
               style={{
-                marginTop: '14px',
-                background: 'transparent',
-                color: '#0099ff',
-                border: '1px solid #0099ff',
+                marginTop: '14px', background: 'transparent',
+                color: '#0099ff', border: '1px solid #0099ff',
                 borderRadius: '8px', padding: '7px 16px',
                 cursor: 'pointer', fontSize: '0.82rem',
                 fontFamily: "'Syne', sans-serif", fontWeight: 600,
               }}>View Event →</button>
-
           </div>
         ))
       )}

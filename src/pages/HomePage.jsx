@@ -165,7 +165,7 @@ function HomePage({ events, theme }) {
                 key={event.id}
                 event={event}
                 theme={theme}
-                onClick={() => navigate(`/event/${event.id}`)}
+                onClick={() => navigate(`/event/${event._id || event.id}`)}
               />
             ))}
           </div>

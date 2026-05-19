@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import { createRegistration, getMyRegistrations } from '../api';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -12,22 +13,45 @@ L.Icon.Default.mergeOptions({
 });
 
 const EVENT_COORDS = {
-  1: [24.8607, 67.0011],
-  2: [31.5204, 74.3587],
-  3: [33.6844, 73.0479],
+  '1': [24.8607, 67.0011],
+  '2': [31.5204, 74.3587],
+  '3': [33.6844, 73.0479],
 };
 
-function EventDetailPage({ events, user, registrations, setRegistrations, theme }) {
+function EventDetailPage({ events, user, theme }) {
   const { id } = useParams();
   const navigate = useNavigate();
   const dark = theme === 'dark';
-  const event = events.find(e => e.id === parseInt(id));
+  const event = events.find(e =>
+  e._id === id ||
+  e._id?.toString() === id ||
+  e.id === parseInt(id)
+);
   const [formData, setFormData] = useState({});
   const [submitted, setSubmitted] = useState(false);
+  const [alreadyRegistered, setAlreadyRegistered] = useState(false);
   const [showMap, setShowMap] = useState(false);
   const [shareMsg, setShareMsg] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const alreadyRegistered = registrations.some(r => r.eventId === event?.id);
+  // Check if already registered
+  useEffect(() => {
+    if (user) {
+      const checkRegistration = async () => {
+        try {
+          const res = await getMyRegistrations();
+          const found = res.data.some(r =>
+            r.eventId === id || r.eventId === event?._id
+          );
+          setAlreadyRegistered(found);
+        } catch (err) {
+          console.log('Could not check registration.');
+        }
+      };
+      checkRegistration();
+    }
+  }, [user, id, event?._id]);
 
   const handleShare = () => {
     const url = window.location.href;
@@ -58,6 +82,27 @@ Name  : ${Object.values(formData)[0] || 'Attendee'}
     a.click();
   };
 
+  const handleSubmit = async () => {
+    if (!user) { navigate('/login'); return; }
+    if (!event.formFields.every(f => formData[f]?.trim())) {
+      setError('Please fill all fields.'); return;
+    }
+    try {
+      setLoading(true);
+      setError('');
+      await createRegistration({
+        eventId: event._id || event.id,
+        eventTitle: event.title,
+        data: formData,
+      });
+      setSubmitted(true);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Registration failed.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!event) return (
     <div style={{
       textAlign: 'center', padding: '80px 2rem',
@@ -66,16 +111,7 @@ Name  : ${Object.values(formData)[0] || 'Attendee'}
     }}>Event not found.</div>
   );
 
-  const handleSubmit = () => {
-    if (!user) { navigate('/login'); return; }
-    const allFilled = event.formFields.every(f => formData[f]?.trim());
-    if (!allFilled) { alert('Please fill all fields.'); return; }
-    setRegistrations(prev => [...prev, {
-      eventId: event.id, eventTitle: event.title,
-      data: formData, date: new Date().toLocaleDateString(),
-    }]);
-    setSubmitted(true);
-  };
+  const coords = EVENT_COORDS[id] || [33.6844, 73.0479];
 
   const inputStyle = {
     width: '100%', padding: '12px 14px', borderRadius: '10px',
@@ -85,8 +121,6 @@ Name  : ${Object.values(formData)[0] || 'Attendee'}
     outline: 'none', fontFamily: "'Syne', sans-serif",
     boxSizing: 'border-box',
   };
-
-  const coords = EVENT_COORDS[event.id] || [33.6844, 73.0479];
 
   return (
     <div style={{ maxWidth: 800, margin: '0 auto', padding: '40px 2rem' }}>
@@ -128,16 +162,16 @@ Name  : ${Object.values(formData)[0] || 'Attendee'}
           <button onClick={handleShare} style={{
             background: dark ? '#0a1e30' : '#e0f0ff',
             color: '#0099ff', border: '1px solid #0099ff',
-            borderRadius: '8px', padding: '6px 14px',
-            cursor: 'pointer', fontFamily: "'Syne', sans-serif",
-            fontWeight: 700, fontSize: '0.82rem',
+            borderRadius: '8px', padding: '6px 14px', cursor: 'pointer',
+            fontFamily: "'Syne', sans-serif", fontWeight: 700,
+            fontSize: '0.82rem',
           }}>🔗 Share</button>
           <button onClick={() => setShowMap(prev => !prev)} style={{
             background: dark ? '#0a1e30' : '#e0f0ff',
             color: '#0099ff', border: '1px solid #0099ff',
-            borderRadius: '8px', padding: '6px 14px',
-            cursor: 'pointer', fontFamily: "'Syne', sans-serif",
-            fontWeight: 700, fontSize: '0.82rem',
+            borderRadius: '8px', padding: '6px 14px', cursor: 'pointer',
+            fontFamily: "'Syne', sans-serif", fontWeight: 700,
+            fontSize: '0.82rem',
           }}>🗺️ {showMap ? 'Hide Map' : 'View Map'}</button>
         </div>
       </div>
@@ -166,14 +200,23 @@ Name  : ${Object.values(formData)[0] || 'Attendee'}
         fontFamily: "'Syne', sans-serif",
         fontWeight: 900, fontSize: '2rem', margin: '0 0 12px',
       }}>{event.title}</h1>
+
       <p style={{ color: dark ? '#888' : '#666', marginBottom: '8px' }}>
-        🏢 Organized by <strong style={{ color: dark ? '#ccc' : '#333' }}>{event.organizer}</strong>
+        🏢 Organized by{' '}
+        <strong style={{ color: dark ? '#ccc' : '#333' }}>
+          {event.organizer}
+        </strong>
       </p>
-      <p style={{ color: dark ? '#888' : '#666', marginBottom: '4px' }}>📅 {event.date} at {event.time}</p>
-      <p style={{ color: dark ? '#888' : '#666', marginBottom: '20px' }}>📍 {event.location}</p>
-      <p style={{ color: dark ? '#bbb' : '#444', lineHeight: 1.7, marginBottom: '32px' }}>
-        {event.description}
+      <p style={{ color: dark ? '#888' : '#666', marginBottom: '4px' }}>
+        📅 {event.date} at {event.time}
       </p>
+      <p style={{ color: dark ? '#888' : '#666', marginBottom: '20px' }}>
+        📍 {event.location}
+      </p>
+      <p style={{
+        color: dark ? '#bbb' : '#444',
+        lineHeight: 1.7, marginBottom: '32px',
+      }}>{event.description}</p>
 
       {/* Registration Form */}
       <div style={{
@@ -186,7 +229,9 @@ Name  : ${Object.values(formData)[0] || 'Attendee'}
           fontFamily: "'Syne', sans-serif",
           fontWeight: 800, marginBottom: '20px',
         }}>
-          {submitted || alreadyRegistered ? '✅ You are Registered!' : 'Register for this Event'}
+          {submitted || alreadyRegistered
+            ? '✅ You are Registered!'
+            : 'Register for this Event'}
         </h2>
 
         {submitted || alreadyRegistered ? (
@@ -198,12 +243,20 @@ Name  : ${Object.values(formData)[0] || 'Attendee'}
               background: 'linear-gradient(135deg, #0099ff, #00e5ff)',
               color: '#fff', border: 'none', borderRadius: '10px',
               padding: '12px 24px', cursor: 'pointer',
-              fontFamily: "'Syne', sans-serif", fontWeight: 700,
-              fontSize: '0.95rem',
+              fontFamily: "'Syne', sans-serif",
+              fontWeight: 700, fontSize: '0.95rem',
             }}>🎟️ Download Ticket</button>
           </div>
         ) : (
           <>
+            {error && (
+              <div style={{
+                background: '#2a0a0a', border: '1px solid #ff4d4d',
+                borderRadius: '10px', padding: '10px 14px',
+                color: '#ff4d4d', fontSize: '0.85rem',
+                fontFamily: "'Syne', sans-serif", marginBottom: '16px',
+              }}>{error}</div>
+            )}
             {event.formFields.map(field => (
               <div key={field} style={{ marginBottom: '16px' }}>
                 <label style={{
@@ -213,19 +266,24 @@ Name  : ${Object.values(formData)[0] || 'Attendee'}
                 }}>{field}</label>
                 <input
                   value={formData[field] || ''}
-                  onChange={e => setFormData(prev => ({ ...prev, [field]: e.target.value }))}
+                  onChange={e => setFormData(prev => ({
+                    ...prev, [field]: e.target.value,
+                  }))}
                   style={inputStyle}
                 />
               </div>
             ))}
-            <button onClick={handleSubmit} style={{
+            <button onClick={handleSubmit} disabled={loading} style={{
               background: 'linear-gradient(135deg, #0099ff, #00e5ff)',
               color: '#fff', border: 'none', borderRadius: '10px',
-              padding: '13px 28px', cursor: 'pointer',
+              padding: '13px 28px', cursor: loading ? 'not-allowed' : 'pointer',
               fontFamily: "'Syne', sans-serif",
               fontWeight: 700, fontSize: '1rem', marginTop: '8px',
+              opacity: loading ? 0.7 : 1,
             }}>
-              {user ? 'Submit Registration' : 'Login to Register'}
+              {!user
+                ? 'Login to Register'
+                : loading ? 'Registering...' : 'Submit Registration'}
             </button>
           </>
         )}

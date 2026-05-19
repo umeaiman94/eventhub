@@ -1,37 +1,45 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
+import { login } from '../api';
+import PasswordInput from '../components/PasswordInput';
 function LoginPage({ setUser, setUserEmail, theme }) {
   const navigate = useNavigate();
   const dark = theme === 'dark';
-  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleLogin = () => {
-    if (!name.trim() || !email.trim()) {
-      alert('Please enter both name and email.');
-      return;
+  const handleLogin = async () => {
+    if (!email.trim() || !password.trim()) {
+      setError('Please fill all fields.'); return;
     }
-    setUser(name);
-    setUserEmail(email);
-    navigate('/');
+    try {
+      setLoading(true);
+      setError('');
+      const res = await login({ email, password });
+      localStorage.setItem('token', res.data.token);
+      setUser(res.data.user.name);
+      setUserEmail(res.data.user.email);
+      navigate('/');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Login failed. Try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const inputStyle = {
-    width: '100%', padding: '12px 14px',
-    borderRadius: '10px',
+    width: '100%', padding: '12px 14px', borderRadius: '10px',
     background: dark ? '#080d14' : '#f8faff',
     border: `1px solid ${dark ? '#0f2e4e' : '#e0e0f0'}`,
-    color: dark ? '#fff' : '#0a1628',
-    fontSize: '0.9rem', outline: 'none',
-    fontFamily: "'Syne', sans-serif",
+    color: dark ? '#fff' : '#0a1628', fontSize: '0.9rem',
+    outline: 'none', fontFamily: "'Syne', sans-serif",
     boxSizing: 'border-box', marginBottom: '16px',
-    transition: 'background 0.3s ease',
   };
 
   const labelStyle = {
-    color: dark ? '#aaa' : '#555',
-    fontSize: '0.85rem',
+    color: dark ? '#aaa' : '#555', fontSize: '0.85rem',
     fontFamily: "'Syne', sans-serif",
     display: 'block', marginBottom: '6px',
   };
@@ -59,10 +67,10 @@ function LoginPage({ setUser, setUserEmail, theme }) {
             color: dark ? '#fff' : '#0a1628',
             fontFamily: "'Syne', sans-serif",
             fontWeight: 900, fontSize: '1.8rem', marginBottom: '6px',
-          }}>Welcome to EventHub</h2>
-          <p style={{
-            color: dark ? '#888' : '#666', fontSize: '0.9rem',
-          }}>Login to unlock all features</p>
+          }}>Welcome Back</h2>
+          <p style={{ color: dark ? '#888' : '#666', fontSize: '0.9rem' }}>
+            Login to unlock all features
+          </p>
         </div>
 
         {/* Card */}
@@ -95,56 +103,59 @@ function LoginPage({ setUser, setUserEmail, theme }) {
             ))}
           </div>
 
-          {/* Name Field */}
-          <label style={labelStyle}>Your Name</label>
-          <input
-            value={name}
-            onChange={e => setName(e.target.value)}
-            placeholder="Aiman"
-            style={inputStyle}
-          />
+          {/* Error Message */}
+          {error && (
+            <div style={{
+              background: '#2a0a0a', border: '1px solid #ff4d4d',
+              borderRadius: '10px', padding: '10px 14px',
+              color: '#ff4d4d', fontSize: '0.85rem',
+              fontFamily: "'Syne', sans-serif", marginBottom: '16px',
+            }}>{error}</div>
+          )}
 
-          {/* Email Field */}
           <label style={labelStyle}>Email</label>
           <input
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            type="email"
-            placeholder="aiman@email.com"
+            value={email} onChange={e => setEmail(e.target.value)}
+            type="email" placeholder="aiman@email.com"
             style={inputStyle}
           />
 
-          {/* Login Button */}
-          <button onClick={handleLogin} style={{
+          <label style={labelStyle}>Password</label>
+<PasswordInput
+  value={password}
+  onChange={e => setPassword(e.target.value)}
+  placeholder="Your password"
+  style={inputStyle}
+/>
+
+          <button onClick={handleLogin} disabled={loading} style={{
             width: '100%',
             background: 'linear-gradient(135deg, #0099ff, #00e5ff)',
             color: '#fff', border: 'none', borderRadius: '12px',
-            padding: '14px', cursor: 'pointer',
+            padding: '14px', cursor: loading ? 'not-allowed' : 'pointer',
             fontFamily: "'Syne', sans-serif",
-            fontWeight: 700, fontSize: '1rem', marginBottom: '12px',
+            fontWeight: 700, fontSize: '1rem', marginBottom: '16px',
+            opacity: loading ? 0.7 : 1,
           }}>
-            Continue →
+            {loading ? 'Logging in...' : 'Login →'}
           </button>
-          <p style={{
-  textAlign: 'center', color: dark ? '#888' : '#666',
-  fontSize: '0.85rem', marginBottom: '12px',
-}}>
-  Don't have an account?{' '}
-  <span
-    onClick={() => navigate('/signup')}
-    style={{ color: '#0099ff', cursor: 'pointer', fontWeight: 700 }}
-  >Sign Up</span>
-</p>
 
-          {/* Back Button */}
+          <p style={{
+            textAlign: 'center', color: dark ? '#888' : '#666',
+            fontSize: '0.85rem', marginBottom: '12px',
+          }}>
+            Don't have an account?{' '}
+            <span onClick={() => navigate('/signup')} style={{
+              color: '#0099ff', cursor: 'pointer', fontWeight: 700,
+            }}>Sign Up</span>
+          </p>
+
           <button onClick={() => navigate('/')} style={{
             width: '100%', background: 'transparent',
-            color: dark ? '#888' : '#666',
-            border: 'none', cursor: 'pointer',
-            fontFamily: "'Syne', sans-serif", fontSize: '0.85rem',
-          }}>
-            Back to Events
-          </button>
+            color: dark ? '#888' : '#666', border: 'none',
+            cursor: 'pointer', fontFamily: "'Syne', sans-serif",
+            fontSize: '0.85rem',
+          }}>Back to Events</button>
         </div>
       </div>
     </div>

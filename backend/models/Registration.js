@@ -12,6 +12,12 @@ const registrationSchema = new mongoose.Schema({
     ref: 'User',
     required: true,
   },
+  userEmail: { type: String },
+  status: {
+    type: String,
+    enum: ['pending', 'approved', 'rejected'],
+    default: 'approved',
+  },
   data: { type: Map, of: String },
 }, { timestamps: true });
 
