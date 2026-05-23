@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+// removed unused navigate
 
 function SettingsPage({ theme, setTheme, user, setUser, userEmail, setUserEmail }) {
   const dark = theme === 'dark';
-  const navigate = useNavigate();
+  
   const [name, setName] = useState(user || '');
   const [email, setEmail] = useState(userEmail || '');
   const [language, setLanguage] = useState('English');

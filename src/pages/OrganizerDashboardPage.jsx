@@ -54,11 +54,7 @@ function OrganizerDashboardPage({ theme, user }) {
     }
   };
 
-  const inputStyle = {
-    background: dark ? '#080d14' : '#f8faff',
-    border: `1px solid ${dark ? '#0f2e4e' : '#e0e0f0'}`,
-    color: dark ? '#fff' : '#0a1628',
-  };
+  
 
   if (loading) return (
     <div style={{
