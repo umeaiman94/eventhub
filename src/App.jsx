@@ -26,6 +26,7 @@ function App() {
   const [userRole, setUserRole] = useState('attendee');
   const [organizerVerified, setOrganizerVerified] = useState(false);
   const [events, setEvents] = useState([]);
+ // eslint-disable-next-line no-unused-vars
   const [registrations, setRegistrations] = useState([]);
   const [theme, setTheme] = useState('dark');
   const [showNotifPrompt, setShowNotifPrompt] = useState(false);
