@@ -17,16 +17,17 @@ function Navbar({ user, setUser, theme, setTheme, userEmail, userRole }) {
   };
 
   const handleDeleteAccount = async () => {
-    try {
-      await deleteAccount();
-      localStorage.removeItem('token');
-      setUser(null);
-      setShowDeleteAccount(false);
-      navigate('/');
-    } catch (err) {
-      alert('Could not delete account. Try again.');
-    }
-  };
+  try {
+    await deleteAccount();
+    localStorage.clear();
+    setUser(null);
+    setUserRole('attendee');
+    setShowDeleteAccount(false);
+    window.location.href = '/';
+  } catch (err) {
+    alert('Could not delete account. Try again.');
+  }
+};
 
   return (
     <>

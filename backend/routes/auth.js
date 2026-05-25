@@ -127,11 +127,22 @@ router.delete('/delete', auth, async (req, res) => {
   try {
     const Registration = require('../models/Registration');
     const Event = require('../models/Event');
+    
+    console.log('Deleting account for userId:', req.user.userId);
+    
     await Registration.deleteMany({ userId: req.user.userId });
     await Event.deleteMany({ organizerId: req.user.userId });
-    await User.findByIdAndDelete(req.user.userId);
+    
+    const deleted = await User.findByIdAndDelete(req.user.userId);
+    
+    if (!deleted) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+    
+    console.log('Account deleted successfully:', req.user.email);
     res.json({ message: 'Account deleted successfully.' });
   } catch (err) {
+    console.log('Delete error:', err.message);
     res.status(500).json({ message: 'Server error.', error: err.message });
   }
 });
