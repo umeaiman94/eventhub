@@ -109,10 +109,17 @@ input::placeholder, textarea::placeholder {
 /* Responsive */
 @media (max-width: 768px) {
   .desktop-nav { display: none !important; }
-  .mobile-nav { display: flex !important; }
+  .hamburger { 
+    display: flex !important; 
+    flex-direction: column;
+    gap: 5px;
+    padding: 8px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+  }
 }
 
 @media (min-width: 769px) {
-  .mobile-nav { display: none !important; }
   .hamburger { display: none !important; }
 }

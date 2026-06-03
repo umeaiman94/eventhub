@@ -44,20 +44,23 @@ function Navbar({ user, setUser, theme, setTheme, userEmail, userRole }) {
 
         {/* Hamburger Button */}
         <button
-          className="hamburger"
-          onClick={() => setShowDrawer(true)}
-          style={{
-            background: 'transparent', border: 'none',
-            cursor: 'pointer', display: 'none',
-            flexDirection: 'column', gap: '5px', padding: '8px',
-          }}>
-          {[0, 1, 2].map(i => (
-            <div key={i} style={{
-              width: 22, height: 2, borderRadius: 2,
-              background: dark ? '#fff' : '#0a1628',
-            }} />
-          ))}
-        </button>
+  className="hamburger"
+  onClick={() => setShowDrawer(true)}
+  style={{
+    background: 'transparent',
+    border: 'none',
+    cursor: 'pointer',
+    flexDirection: 'column',
+    gap: '5px',
+    padding: '8px',
+  }}>
+  {[0, 1, 2].map(i => (
+    <div key={i} style={{
+      width: 22, height: 2, borderRadius: 2,
+      background: dark ? '#fff' : '#0a1628',
+    }} />
+  ))}
+</button>
 
         {/* Logo */}
         <Link to="/" style={{
