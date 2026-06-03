@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { deleteAccount } from '../api';
 
-function Navbar({ user, setUser, theme, setTheme, userEmail, userRole }) {
+function Navbar({ user, setUser, theme, setTheme, userEmail, userRole, setUserRole }) {
   const navigate = useNavigate();
   const dark = theme === 'dark';
   const [showDropdown, setShowDropdown] = useState(false);
